@@ -1,5 +1,7 @@
 // Variables
 const moveSound = new Audio('cellmove.mp3');
+const board = document.getElementById('board');
+const score = document.getElementById('currentscore');
 const cell1 = document.getElementById('cell1');
 const cell2 = document.getElementById('cell2');
 const cell3 = document.getElementById('cell3');
@@ -16,6 +18,7 @@ const cell13 = document.getElementById('cell13');
 const cell14 = document.getElementById('cell14');
 const cell15 = document.getElementById('cell15');
 const cell16 = document.getElementById('cell16');
+let cscore = 0;
 const cells = [cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8, cell9, cell10, cell11, cell12, cell13, cell14, cell15, cell16];
 const data = [
     { color: '#eee4da', number: '2' },
@@ -78,9 +81,8 @@ function generateanewcell() {
     let emptycells = cells.filter(cell => cell.style.backgroundColor === '');
     if (emptycells.length !== 0) {
         let rcell = randomnumber(0, emptycells.length - 1);
-        let rdata = randomnumber(0, 1);
-        emptycells[rcell].style.backgroundColor = data[rdata].color;
-        emptycells[rcell].innerHTML = data[rdata].number;
+        emptycells[rcell].style.backgroundColor = data[0].color;
+        emptycells[rcell].innerHTML = data[0].number;
     }
 
 }
@@ -100,9 +102,47 @@ function shiftCellsDown() {
             }
         }
 
-
         // Move cells to the bottom of the column
         let newPosition = 3;
+        for (let i = columnCells.length - 1; i >= 0; i--) {
+            let index = newPosition * 4 + col;
+            cells[index].style.backgroundColor = columnCells[i].color;
+            cells[index].innerHTML = columnCells[i].value;
+            newPosition--;
+        }
+
+        // Combine cells with the same value
+        for (let row = 3; row > 0; row--) {
+            let index = row * 4 + col;
+            let aboveIndex = (row - 1) * 4 + col;
+
+            if (cells[index].innerHTML === cells[aboveIndex].innerHTML && cells[index].innerHTML !== '') {
+                let newValue = parseInt(cells[index].innerHTML) * 2;
+                cells[index].innerHTML = newValue.toString();
+                cells[aboveIndex].innerHTML = '';
+                cells[aboveIndex].style.backgroundColor = '';
+                // Update the color based on the new value
+                cells[index].style.backgroundColor = data.find(d => d.number == newValue).color;
+            }
+        }
+
+        // Move cells to the bottom again after combining
+        columnCells = [];
+        for (let row = 0; row < 4; row++) {
+            let index = row * 4 + col;
+            let cell = cells[index];
+            let color = cell.style.backgroundColor;
+            let value = cell.innerHTML;
+
+            if (color !== '' && value !== '') {
+                columnCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
+                
+            }
+        }
+
+        newPosition = 3;
         for (let i = columnCells.length - 1; i >= 0; i--) {
             let index = newPosition * 4 + col;
             cells[index].style.backgroundColor = columnCells[i].color;
@@ -117,132 +157,224 @@ function shiftCellsDown() {
             console.log(`Cell ${index}:`, cell.style.backgroundColor, cell.innerHTML);
         }
     }
+
+    // Generate a new cell
+    cscore += 10;
+    score.innerText = `${cscore}`;
     generateanewcell();
     moveSound.play();
-};
+}
 
-// Placeholder functions for other directions
 function shiftCellsUp() {
-    console.log("Shifting cells up..."); // Debugging message
-
-    for (let col = 0; col < 4; col++) { // Loop through each column
-        let columnCells = []; // Array to store non-empty cells in this column
-
-        for (let row = 0; row < 4; row++) { // Loop through each cell in the column
-            let index = row * 4 + col; // Calculate the index of the cell
-            let cell = cells[index];
-            let color = cell.style.backgroundColor;
-            let value = cell.innerHTML;
-
-            if (color !== '' && value !== '') { // If the cell is not empty
-                columnCells.push({ color, value }); // Add the cell to columnCells
-                cell.style.backgroundColor = ''; // Clear the cell's background
-                cell.innerHTML = ''; // Clear the cell's value
-            }
-        }
-
-        // Log the collected cells for debugging
-        console.log(`Column ${col}:`, columnCells);
-
-        let newPosition = 0; // Start from the top of the column
-        for (let i = 0; i < columnCells.length; i++) { // Place collected cells from top to bottom
-            let index = newPosition * 4 + col; // Calculate the index to place the cell
-            cells[index].style.backgroundColor = columnCells[i].color; // Set the cell's background color
-            cells[index].innerHTML = columnCells[i].value; // Set the cell's value
-            newPosition++; // Move down to the next available position
-        }
-
-        // Log the final state of the column for debugging
-        console.log(`Final state of Column ${col}:`);
+    for (let col = 0; col < 4; col++) {
+        let columnCells = [];
         for (let row = 0; row < 4; row++) {
             let index = row * 4 + col;
             let cell = cells[index];
-            console.log(`Cell ${index}:`, cell.style.backgroundColor, cell.innerHTML);
+            let color = cell.style.backgroundColor;
+            let value = cell.innerHTML;
+
+            if (color !== '' && value !== '') {
+                columnCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
+            }
+        }
+
+        // Move cells to the top of the column
+        let newPosition = 0;
+        for (let i = 0; i < columnCells.length; i++) {
+            let index = newPosition * 4 + col;
+            cells[index].style.backgroundColor = columnCells[i].color;
+            cells[index].innerHTML = columnCells[i].value;
+            newPosition++;
+        }
+
+        // Combine cells with the same value
+        for (let row = 0; row < 3; row++) {
+            let index = row * 4 + col;
+            let belowIndex = (row + 1) * 4 + col;
+
+            if (cells[index].innerHTML === cells[belowIndex].innerHTML && cells[index].innerHTML !== '') {
+                let newValue = parseInt(cells[index].innerHTML) * 2;
+                cells[index].innerHTML = newValue.toString();
+                cells[belowIndex].innerHTML = '';
+                cells[belowIndex].style.backgroundColor = '';
+                // Update the color based on the new value
+                cells[index].style.backgroundColor = data.find(d => d.number == newValue).color;
+            }
+        }
+
+        // Move cells to the top again after combining
+        columnCells = [];
+        for (let row = 0; row < 4; row++) {
+            let index = row * 4 + col;
+            let cell = cells[index];
+            let color = cell.style.backgroundColor;
+            let value = cell.innerHTML;
+
+            if (color !== '' && value !== '') {
+                columnCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
+            }
+        }
+
+        newPosition = 0;
+        for (let i = 0; i < columnCells.length; i++) {
+            let index = newPosition * 4 + col;
+            cells[index].style.backgroundColor = columnCells[i].color;
+            cells[index].innerHTML = columnCells[i].value;
+            newPosition++;
         }
     }
+
+    // Generate a new cell
+    cscore+=10;
+    score.innerText = `${cscore}`;
     generateanewcell();
-    moveSound.play(); // Play the move sound
+    moveSound.play();
 }
 function shiftCellsLeft() {
-    console.log("Shifting cells left..."); // Debugging message
-
-    for (let row = 0; row < 4; row++) { // Loop through each row
-        let rowCells = []; // Array to store non-empty cells in this row
-
-        for (let col = 0; col < 4; col++) { // Loop through each cell in the row
-            let index = row * 4 + col; // Calculate the index of the cell
+    for (let row = 0; row < 4; row++) {
+        let rowCells = [];
+        for (let col = 0; col < 4; col++) {
+            let index = row * 4 + col;
             let cell = cells[index];
             let color = cell.style.backgroundColor;
             let value = cell.innerHTML;
 
-            if (color !== '' && value !== '') { // If the cell is not empty
-                rowCells.push({ color, value }); // Add the cell to rowCells
-                cell.style.backgroundColor = ''; // Clear the cell's background
-                cell.innerHTML = ''; // Clear the cell's value
+            if (color !== '' && value !== '') {
+                rowCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
             }
         }
 
-        // Log the collected cells for debugging
-        console.log(`Row ${row}:`, rowCells);
-
-        let newPosition = 0; // Start from the left of the row
-        for (let i = 0; i < rowCells.length; i++) { // Place collected cells from left to right
-            let index = row * 4 + newPosition; // Calculate the index to place the cell
-            cells[index].style.backgroundColor = rowCells[i].color; // Set the cell's background color
-            cells[index].innerHTML = rowCells[i].value; // Set the cell's value
-            newPosition++; // Move right to the next available position
+        // Move cells to the left of the row
+        let newPosition = 0;
+        for (let i = 0; i < rowCells.length; i++) {
+            let index = row * 4 + newPosition;
+            cells[index].style.backgroundColor = rowCells[i].color;
+            cells[index].innerHTML = rowCells[i].value;
+            newPosition++;
         }
 
-        // Log the final state of the row for debugging
-        console.log(`Final state of Row ${row}:`);
+        // Combine cells with the same value
+        for (let col = 0; col < 3; col++) {
+            let index = row * 4 + col;
+            let nextIndex = row * 4 + col + 1;
+
+            if (cells[index].innerHTML === cells[nextIndex].innerHTML && cells[index].innerHTML !== '') {
+                let newValue = parseInt(cells[index].innerHTML) * 2;
+                cells[index].innerHTML = newValue.toString();
+                cells[nextIndex].innerHTML = '';
+                cells[nextIndex].style.backgroundColor = '';
+                // Update the color based on the new value
+                cells[index].style.backgroundColor = data.find(d => d.number == newValue).color;
+            }
+        }
+
+        // Move cells to the left again after combining
+        rowCells = [];
         for (let col = 0; col < 4; col++) {
             let index = row * 4 + col;
             let cell = cells[index];
-            console.log(`Cell ${index}:`, cell.style.backgroundColor, cell.innerHTML);
+            let color = cell.style.backgroundColor;
+            let value = cell.innerHTML;
+
+            if (color !== '' && value !== '') {
+                rowCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
+            }
+        }
+
+        newPosition = 0;
+        for (let i = 0; i < rowCells.length; i++) {
+            let index = row * 4 + newPosition;
+            cells[index].style.backgroundColor = rowCells[i].color;
+            cells[index].innerHTML = rowCells[i].value;
+            newPosition++;
         }
     }
+
+    // Generate a new cell
+    cscore+=10;
+    score.innerText = `${cscore}`;
     generateanewcell();
-    moveSound.play(); // Play the move sound
+    moveSound.play();
 }
 function shiftCellsRight() {
-    console.log("Shifting cells right..."); // Debugging message
-
-    for (let row = 0; row < 4; row++) { // Loop through each row
-        let rowCells = []; // Array to store non-empty cells in this row
-
-        for (let col = 0; col < 4; col++) { // Loop through each cell in the row
-            let index = row * 4 + col; // Calculate the index of the cell
+    for (let row = 0; row < 4; row++) {
+        let rowCells = [];
+        for (let col = 0; col < 4; col++) {
+            let index = row * 4 + col;
             let cell = cells[index];
             let color = cell.style.backgroundColor;
             let value = cell.innerHTML;
 
-            if (color !== '' && value !== '') { // If the cell is not empty
-                rowCells.push({ color, value }); // Add the cell to rowCells
-                cell.style.backgroundColor = ''; // Clear the cell's background
-                cell.innerHTML = ''; // Clear the cell's value
+            if (color !== '' && value !== '') {
+                rowCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
             }
         }
 
-        // Log the collected cells for debugging
-        console.log(`Row ${row}:`, rowCells);
-
-        let newPosition = 3; // Start from the right of the row
-        for (let i = rowCells.length - 1; i >= 0; i--) { // Place collected cells from right to left
-            let index = row * 4 + newPosition; // Calculate the index to place the cell
-            cells[index].style.backgroundColor = rowCells[i].color; // Set the cell's background color
-            cells[index].innerHTML = rowCells[i].value; // Set the cell's value
-            newPosition--; // Move left to the next available position
+        // Move cells to the right of the row
+        let newPosition = 3;
+        for (let i = rowCells.length - 1; i >= 0; i--) {
+            let index = row * 4 + newPosition;
+            cells[index].style.backgroundColor = rowCells[i].color;
+            cells[index].innerHTML = rowCells[i].value;
+            newPosition--;
         }
 
-        // Log the final state of the row for debugging
-        console.log(`Final state of Row ${row}:`);
+        // Combine cells with the same value
+        for (let col = 3; col > 0; col--) {
+            let index = row * 4 + col;
+            let prevIndex = row * 4 + col - 1;
+
+            if (cells[index].innerHTML === cells[prevIndex].innerHTML && cells[index].innerHTML !== '') {
+                let newValue = parseInt(cells[index].innerHTML) * 2;
+                cells[index].innerHTML = newValue.toString();
+                cells[prevIndex].innerHTML = '';
+                cells[prevIndex].style.backgroundColor = '';
+                // Update the color based on the new value
+                cells[index].style.backgroundColor = data.find(d => d.number == newValue).color;
+                
+            }
+        }
+
+        // Move cells to the right again after combining
+        rowCells = [];
         for (let col = 0; col < 4; col++) {
             let index = row * 4 + col;
             let cell = cells[index];
-            console.log(`Cell ${index}:`, cell.style.backgroundColor, cell.innerHTML);
+            let color = cell.style.backgroundColor;
+            let value = cell.innerHTML;
+
+            if (color !== '' && value !== '') {
+                rowCells.push({ color, value }); // Collect non-empty cells
+                cell.style.backgroundColor = ''; // Clear the cell
+                cell.innerHTML = ''; // Clear the value
+            }
+        }
+
+        newPosition = 3;
+        for (let i = rowCells.length - 1; i >= 0; i--) {
+            let index = row * 4 + newPosition;
+            cells[index].style.backgroundColor = rowCells[i].color;
+            cells[index].innerHTML = rowCells[i].value;
+            newPosition--;
         }
     }
+
+    // Generate a new cell
+    cscore+=10;
+    score.innerText = `${cscore}`;
     generateanewcell();
-    moveSound.play(); // Play the move sound
+    moveSound.play();
 }
+
 
