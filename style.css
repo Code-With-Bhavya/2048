@@ -99,3 +99,9 @@ body {
   font-size: 55px;
   color: #776e65;
 }
+@media screen and (max-width: 600px) {
+  #board{
+    width: 50vw;
+    height: 40vh;
+  }
+}
