@@ -3,7 +3,7 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   font-family: "Poppins", sans-serif;
 }
 
@@ -32,7 +32,7 @@ body {
 
 #scores {
   display: flex;
-  gap: 20px;
+  gap: 10px;
 }
 
 #score,
@@ -100,8 +100,14 @@ body {
   color: #776e65;
 }
 @media screen and (max-width: 600px) {
+  body{
+    justify-content: start;
+  }
   #board{
-    width: 50vw;
-    height: 40vh;
+    width: 89vw;
+    height: 50vh;
+  }
+  #newgame{
+    display: none;
   }
 }
