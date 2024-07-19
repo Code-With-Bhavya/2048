@@ -1,5 +1,6 @@
 // Variables
 const moveSound = new Audio('cellmove.mp3');
+const GameoverSound = new Audio('gameover.mp3');
 const winSound = new Audio('gamewin.mp3');
 const newgamebtn = document.getElementById('newgame');
 const board = document.getElementById('board');
@@ -225,6 +226,7 @@ function shiftCellsDown() {
 
     // Generate a new cell
     score.innerText = `${cscore}`;
+    checkGameOver();
     generateanewcell();
     moveSound.play();
 }
@@ -311,6 +313,7 @@ function shiftCellsUp() {
 
     // Generate a new cell
     score.innerText = `${cscore}`;
+    checkGameOver();
     generateanewcell();
     moveSound.play();
 }
@@ -398,6 +401,7 @@ function shiftCellsLeft() {
 
     // Generate a new cell
     score.innerText = `${cscore}`;
+    checkGameOver();
     generateanewcell();
     moveSound.play();
 }
@@ -485,6 +489,7 @@ function shiftCellsRight() {
 
     // Generate a new cell
     score.innerText = `${cscore}`;
+    checkGameOver();
     generateanewcell();
     moveSound.play();
 }
@@ -506,3 +511,22 @@ function checkWinCondition() {
         }
     });
 }
+function checkGameOver() {
+    for (let i = 0; i < cells.length; i++) {
+        if (cells[i].innerHTML === '') {
+            return; // Empty cell found, game is not over
+        }
+        // Check for possible merges in the same row
+        if (i % 4 < 3 && cells[i].innerHTML === cells[i + 1].innerHTML) {
+            return; // Merge possible, game is not over
+        }
+        // Check for possible merges in the same column
+        if (i < 12 && cells[i].innerHTML === cells[i + 4].innerHTML) {
+            return; // Merge possible, game is not over
+        }
+    }
+    // If no empty cells and no possible merges
+    GameoverSound.play();
+    alert('Game Over!!!');
+}
+
